@@ -27,10 +27,21 @@ function prepareGroup(inputObj, flatted, sourceXpath) {
 function processGrouped(obj, targetXpath) {
     var flatOutput = {};
     var keys = Object.keys(obj);
+    targetXpath = targetXpath.replace(/\[]./g, "[0-9]");
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        var arrapos = key.match(/[0-9]*[0-9]./g);
-        var temp = targetXpath.replace(/\[]./g, "[0-9]");
+        var changed = key.match(/(^[0-9]*\.|\W[0-9]*\.)/g);
+        if (changed) {
+            changed = JSON.stringify(changed).replace(/\"\./g, "\"");
+        }
+        var arrapos = '';
+        try {
+            arrapos = JSON.parse(changed);
+        }
+        catch (e) {
+            arrapos = changed;
+        }
+        var temp = targetXpath;
         if (arrapos != null) {
             arrapos.forEach(function (pos) {
                 pos = "." + pos;
@@ -61,8 +72,8 @@ function merge(a, b) {
     return a;
 };
 
-function getValue(obj, xpath) {
-    var localObj = JSON.parse(JSON.stringify(obj));
+function getValue(localObj, xpath) {
+    //var localObj = JSON.parse(JSON.stringify(obj));
     var xpathArr = xpath.split('.');
     xpathArr.forEach(function (path) {
         localObj = localObj[path];
@@ -144,10 +155,15 @@ function flatten(target, opts) {
 
             output[getkey(key, prev)] = object[key]
         });
+        if (Object.keys(object) == "") {
+            if (object instanceof Array) {
+                output[prev] = [];
+            } else {
+                output[prev] = {};
+            }
+        }
     };
-
     step(target)
-
     return output
 };
 

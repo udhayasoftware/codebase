@@ -167,15 +167,34 @@ function flatten(target, opts) {
     return output
 };
 
+function isChildAttribute(map, flatted, mapArray) {
+    var parent = map.sourceXpath;
+    for (var j = 0; j < mapArray.length; j++) {
+        var child = mapArray[j].sourceXpath;
+        if (child.indexOf(parent) != -1 && parent.length < child.length) {
+            if (child.indexOf(parent + ".") != -1 || child.indexOf(parent + "[]") != -1) {
+                var temp = child;
+                temp = temp.replace(/\[]/g, ".0");
+                if (flatted[temp] != undefined) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 function transformJSON(inputObj, mapArray) {
     var flatted = flatten(inputObj);
     var finalout = {};
     if (mapArray.length > 0 && (mapArray[0].targetXpath).charAt(0) == "[")
         finalout = [];
     mapArray.forEach(function (map) {
-        var grouped = prepareGroup(inputObj, flatted, map.sourceXpath);
-        var output = processGrouped(grouped, map.targetXpath);
-        finalout = merge(finalout, output);  // merge two json objects
+        if (isChildAttribute(map, flatted, mapArray)) {
+            var grouped = prepareGroup(inputObj, flatted, map.sourceXpath);
+            var output = processGrouped(grouped, map.targetXpath);
+            finalout = merge(finalout, output);  // merge two json objects
+        }
     });
     return finalout;
 }

@@ -4,7 +4,7 @@ var NTLMClient = require("./NTLMClient");
 var config = {
     username: 'username',
     password: 'password',
-    domain: 'cts',
+    domain: 'banana',
     workstation: '',
     url: 'https://mail.company.com/ews/exchange.asmx',
     host: 'mail.company.com'
